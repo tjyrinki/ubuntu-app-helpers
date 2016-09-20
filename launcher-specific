@@ -1,0 +1,62 @@
+#############################
+# QT launcher specific part #
+#############################
+
+# Qt Platform to Mir
+export QTCHOOSER_NO_GLOBAL_DIR=1
+
+# Qt Libs and Modules
+export LD_LIBRARY_PATH=$SNAP/usr/lib/$ARCH/qt5/libs:$LD_LIBRARY_PATH
+export QT_PLUGIN_PATH=$SNAP/usr/lib/$ARCH/qt5/plugins
+export QML2_IMPORT_PATH=$QML2_IMPORT_PATH:$SNAP/usr/lib/$ARCH/qt5/qml
+export QML2_IMPORT_PATH=$QML2_IMPORT_PATH:$SNAP/lib/$ARCH
+
+# Necessary for the SDK to find the translations directory
+export APP_DIR=$SNAP
+
+# Removes Qt warning: Could not find a location
+# of the system Compose files
+export QTCOMPOSE=$SNAP/usr/share/X11/locale
+
+# Use GTK styling for running under Unity 7
+export GTK_PATH=$SNAP/usr/lib/$ARCH/gtk-2.0
+
+# Gdk-pixbuf loaders
+export GDK_PIXBUF_MODULE_FILE=$XDG_CACHE_HOME/gdk-pixbuf-loaders.cache
+export GDK_PIXBUF_MODULEDIR=$SNAP/usr/lib/$ARCH/gdk-pixbuf-2.0/2.10.0/loaders
+
+if [ $needs_update = true ]; then
+  rm -f $GDK_PIXBUF_MODULE_FILE
+  if [ -f $SNAP/usr/lib/$ARCH/gdk-pixbuf-2.0/gdk-pixbuf-query-loaders ]; then
+    $SNAP/usr/lib/$ARCH/gdk-pixbuf-2.0/gdk-pixbuf-query-loaders > $GDK_PIXBUF_MODULE_FILE
+  fi
+fi
+
+# Keep an array of data dirs, for looping through them
+IFS=':' read -r -a data_dirs_array <<< "$XDG_DATA_DIRS"
+
+# Icon themes cache
+if [ $needs_update = true ]; then
+  rm -rf $XDG_DATA_HOME/icons
+  mkdir -p $XDG_DATA_HOME/icons
+  for d in "${data_dirs_array[@]}"; do
+    for i in $d/icons/*; do
+      if [ -d "$i" ]; then
+        theme_dir=$XDG_DATA_HOME/icons/$(basename "$i")
+        if [ ! -d "$theme_dir" ]; then
+          mkdir -p "$theme_dir"
+          ln -s $i/* "$theme_dir"
+          if [ -f $SNAP/usr/sbin/update-icon-caches ]; then
+            $SNAP/usr/sbin/update-icon-caches "$theme_dir"
+          elif [ -f $SNAP/usr/sbin/update-icon-cache.gtk2 ]; then
+            $SNAP/usr/sbin/update-icon-cache.gtk2 "$theme_dir"
+          fi
+        fi
+      fi
+    done
+  done
+fi
+
+
+exec "$@"
+

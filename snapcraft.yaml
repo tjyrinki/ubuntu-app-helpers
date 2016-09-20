@@ -1,0 +1,22 @@
+name: application
+version: 1
+summary: Qt Application Example
+description: A simple text editor
+confinement: devmode
+
+apps:
+  application:
+    command: ubuntu-qt-launch application
+    plugs: [unity7, home]
+
+parts:
+  application:
+    source: src/
+    plugin: qmake
+    qt-version: qt5
+    after: [qt-ubuntu, qt5]
+  qt5:
+    source: .
+    plugin: make
+    make-parameters: ["SRC_DIR=../src"]
+
