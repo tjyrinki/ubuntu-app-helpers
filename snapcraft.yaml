@@ -6,16 +6,16 @@ confinement: devmode
 
 apps:
   application:
-    command: ubuntu-qt-launch application
-    plugs: [unity7, home]
+    command: ubuntu-app-launch application
+    plugs: [ubuntu-app-runtime, unity7, home]
 
 parts:
   application:
     source: src/
     plugin: qmake
     qt-version: qt5
-    after: [qt-ubuntu, qt5]
-  qt5:
+    after: [ubuntu-app-runtime, qt5]
+  ubuntu-app-runtime:
     source: .
     plugin: make
     make-parameters: ["SRC_DIR=../src"]
